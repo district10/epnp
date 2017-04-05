@@ -1,49 +1,19 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(epnp)
+cmake_minimum_required( VERSION 2.8.3 )
+project( epnp )
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-)
+# find_package(OpenCV REQUIRED)
+# include( $ENV{OpenCV_DIR}/OpenCVConfig.cmake )
+include( "C:/opencv/build/OpenCVConfig.cmake" )
 
-find_package(OpenCV REQUIRED)
+include_directories( src )
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
-#  CATKIN_DEPENDS roscpp
-  DEPENDS opencv
-)
+add_library( ${PROJECT_NAME} src/epnp.cpp )
+target_link_libraries( ${PROJECT_NAME} ${OpenCV_LIBRARIES} )
 
-###########
-## Build ##
-###########
-
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
-
-## Declare a cpp library
-add_library(${PROJECT_NAME}
-  src/epnp.cpp
-)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-
-## Declare a cpp executable
-add_executable(epnp_example src/main.cpp)
-target_link_libraries(epnp_example
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
-
-#############
-## Install ##
-#############
-
-## Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-        FILES_MATCHING PATTERN "*.h"
-)
-
+file( GLOB SRCS examples/*.cpp)
+foreach( src ${SRCS} )
+    string( REGEX REPLACE "(^.*/|.cpp$)" "" exe ${src} )
+    message( STATUS "${exe} <-- ${src}" )
+    add_executable( ${exe} ${src} )
+    target_link_libraries( ${exe} ${PROJECT_NAME} ${OpenCV_LIBRARIES} )
+endforeach( src )

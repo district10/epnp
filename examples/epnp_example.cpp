@@ -27,9 +27,10 @@
   
 #include <iostream>
 #include <fstream>
+#include <ctime>
 using namespace std;
 
-#include "epnp/epnp.h"
+#include "epnp.h"
 
 const double uc = 320;
 const double vc = 240;

@@ -28,7 +28,7 @@
 #include <iostream>
 using namespace std;
 
-#include "epnp/epnp.h"
+#include "epnp.h"
 
 epnp::epnp(void)
 {
