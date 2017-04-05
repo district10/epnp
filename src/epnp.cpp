@@ -94,6 +94,8 @@ void epnp::choose_control_points(void)
 {
     // Take C0 as the reference points centroid:
     cws[0][0] = cws[0][1] = cws[0][2] = 0;
+
+    // 计算质心，选为第一个控制点
     for (int i = 0; i < number_of_correspondences; i++)
         for (int j = 0; j < 3; j++)
             cws[0][j] += pws[3 * i + j];
@@ -119,6 +121,7 @@ void epnp::choose_control_points(void)
 
     cvReleaseMat(&PW0);
 
+    // 计算其余三个控制点
     for (int i = 1; i < 4; i++) {
         double k = sqrt(dc[i - 1] / number_of_correspondences);
         for (int j = 0; j < 3; j++)
@@ -128,6 +131,7 @@ void epnp::choose_control_points(void)
 
 void epnp::compute_barycentric_coordinates(void)
 {
+    // cc 存储了三个 delta vector = p - p0
     double cc[3 * 3], cc_inv[3 * 3];
     CvMat CC = cvMat(3, 3, CV_64F, cc);
     CvMat CC_inv = cvMat(3, 3, CV_64F, cc_inv);
@@ -141,12 +145,11 @@ void epnp::compute_barycentric_coordinates(void)
     for (int i = 0; i < number_of_correspondences; i++) {
         double * pi = pws + 3 * i;
         double * a = alphas + 4 * i;
-
-        for (int j = 0; j < 3; j++)
-            a[1 + j] =
-            ci[3 * j] * (pi[0] - cws[0][0]) +
-            ci[3 * j + 1] * (pi[1] - cws[0][1]) +
-            ci[3 * j + 2] * (pi[2] - cws[0][2]);
+        for (int j = 0; j < 3; j++) {
+            a[1 + j] = ci[3 * j    ] * (pi[0] - cws[0][0]) 
+                     + ci[3 * j + 1] * (pi[1] - cws[0][1])
+                     + ci[3 * j + 2] * (pi[2] - cws[0][2]);
+        }
         a[0] = 1.0f - a[1] - a[2] - a[3];
     }
 }
@@ -194,13 +197,19 @@ void epnp::compute_pcs(void)
 
 double epnp::compute_pose(double R[3][3], double t[3])
 {
+    // 所有参考点的质心为一个控制点 cws[0]
+    // 再根据主分量确定三个方向，算出另外三个控制点 cws[1~3]
     choose_control_points();
+    // 计算所有参考点在控制点重心坐标系下的坐标
     compute_barycentric_coordinates();
 
+    // M 矩阵
     CvMat * M = cvCreateMat(2 * number_of_correspondences, 12, CV_64F);
 
-    for (int i = 0; i < number_of_correspondences; i++)
+    for (int i = 0; i < number_of_correspondences; i++) {
+        // 一次初始化两行
         fill_M(M, 2 * i, alphas + 4 * i, us[2 * i], us[2 * i + 1]);
+    }
 
     double mtm[12 * 12], d[12], ut[12 * 12];
     CvMat MtM = cvMat(12, 12, CV_64F, mtm);
@@ -237,6 +246,7 @@ double epnp::compute_pose(double R[3][3], double t[3])
     if (rep_errors[2] < rep_errors[1]) N = 2;
     if (rep_errors[3] < rep_errors[N]) N = 3;
 
+    // 输出到 R，t
     copy_R_and_t(Rs[N], ts[N], R, t);
 
     return rep_errors[N];
@@ -346,9 +356,17 @@ void epnp::estimate_R_and_t(double R[3][3], double t[3])
 
 void epnp::print_pose(const double R[3][3], const double t[3])
 {
-    cout << R[0][0] << " " << R[0][1] << " " << R[0][2] << " " << t[0] << endl;
-    cout << R[1][0] << " " << R[1][1] << " " << R[1][2] << " " << t[1] << endl;
-    cout << R[2][0] << " " << R[2][1] << " " << R[2][2] << " " << t[2] << endl;
+    #define number "%+8.4f"
+    printf( number number number " |" number "\n"
+            number number number " |" number "\n"
+            number number number " |" number "\n"
+         "-------------------------+----------\n"
+            number number number " |" number "\n\n", 
+            R[0][0], R[0][1], R[0][2], t[0],
+            R[1][0], R[1][1], R[1][2], t[1],
+            R[2][0], R[2][1], R[2][2], t[2],
+                0.0,     0.0,     0.0, 1.0);
+    #undef number
 }
 
 void epnp::solve_for_sign(void)
@@ -705,6 +723,8 @@ void epnp::relative_error(double & rot_err, double & transl_err,
 
 void epnp::mat_to_quat(const double R[3][3], double q[4])
 {
+    // 一点参考资料：（THREE.js 的 Quaternion.js 里面有 setFromRotationMatrix 函数）
+    // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
     double tr = R[0][0] + R[1][1] + R[2][2];
     double n4;
 
