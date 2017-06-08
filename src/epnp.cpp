@@ -700,25 +700,41 @@ void epnp::relative_error(double & rot_err, double & transl_err,
     mat_to_quat(Rtrue, qtrue);
     mat_to_quat(Rest, qest);
 
-    double rot_err1 = sqrt((qtrue[0] - qest[0]) * (qtrue[0] - qest[0]) +
-        (qtrue[1] - qest[1]) * (qtrue[1] - qest[1]) +
-        (qtrue[2] - qest[2]) * (qtrue[2] - qest[2]) +
-        (qtrue[3] - qest[3]) * (qtrue[3] - qest[3])) /
-        sqrt(qtrue[0] * qtrue[0] + qtrue[1] * qtrue[1] + qtrue[2] * qtrue[2] + qtrue[3] * qtrue[3]);
+    double rot_err1 = sqrt(
+            (qtrue[0] - qest[0]) * (qtrue[0] - qest[0]) +
+            (qtrue[1] - qest[1]) * (qtrue[1] - qest[1]) +
+            (qtrue[2] - qest[2]) * (qtrue[2] - qest[2]) +
+            (qtrue[3] - qest[3]) * (qtrue[3] - qest[3]) 
+        ) / sqrt(
+            qtrue[0] * qtrue[0] + 
+            qtrue[1] * qtrue[1] + 
+            qtrue[2] * qtrue[2] + 
+            qtrue[3] * qtrue[3]
+        );
 
-    double rot_err2 = sqrt((qtrue[0] + qest[0]) * (qtrue[0] + qest[0]) +
-        (qtrue[1] + qest[1]) * (qtrue[1] + qest[1]) +
-        (qtrue[2] + qest[2]) * (qtrue[2] + qest[2]) +
-        (qtrue[3] + qest[3]) * (qtrue[3] + qest[3])) /
-        sqrt(qtrue[0] * qtrue[0] + qtrue[1] * qtrue[1] + qtrue[2] * qtrue[2] + qtrue[3] * qtrue[3]);
+    double rot_err2 = sqrt(
+            (qtrue[0] + qest[0]) * (qtrue[0] + qest[0]) +
+            (qtrue[1] + qest[1]) * (qtrue[1] + qest[1]) +
+            (qtrue[2] + qest[2]) * (qtrue[2] + qest[2]) +
+            (qtrue[3] + qest[3]) * (qtrue[3] + qest[3])
+        ) / sqrt(
+            qtrue[0] * qtrue[0] + 
+            qtrue[1] * qtrue[1] + 
+            qtrue[2] * qtrue[2] + 
+            qtrue[3] * qtrue[3]
+        );
 
     rot_err = min(rot_err1, rot_err2);
 
-    transl_err =
-        sqrt((ttrue[0] - test[0]) * (ttrue[0] - test[0]) +
-        (ttrue[1] - test[1]) * (ttrue[1] - test[1]) +
-            (ttrue[2] - test[2]) * (ttrue[2] - test[2])) /
-        sqrt(ttrue[0] * ttrue[0] + ttrue[1] * ttrue[1] + ttrue[2] * ttrue[2]);
+    transl_err = sqrt(
+            (ttrue[0] - test[0]) * (ttrue[0] - test[0]) +
+            (ttrue[1] - test[1]) * (ttrue[1] - test[1]) +
+            (ttrue[2] - test[2]) * (ttrue[2] - test[2])
+        ) / sqrt(
+            ttrue[0] * ttrue[0] + 
+            ttrue[1] * ttrue[1] + 
+            ttrue[2] * ttrue[2]
+        );
 }
 
 void epnp::mat_to_quat(const double R[3][3], double q[4])
